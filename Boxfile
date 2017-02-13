@@ -85,8 +85,11 @@ install_dependencies
 
 create_kubelet_wrapper
 
-tag "kxd:shell"
+# TODO use environment variable
+image_name = "errordeveloper/kxd"
+
+tag "#{image_name}:shell"
 
 set_exec entrypoint: %w(tini --), cmd: %w(kubelet.sh)
 
-tag "kxd:kubelet"
+tag "#{image_name}:kubelet"
