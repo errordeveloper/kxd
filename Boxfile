@@ -15,6 +15,7 @@ def install_dependencies
     kubernetes: "v1.5.2",
     kubeadm: "v1.6.0-alpha.0.2074+a092d8e0f95f52",
     weave: "v1.9.0",
+    tini: "v0.14.0",
   }
 
   prepare = [
@@ -44,6 +45,10 @@ def install_dependencies
       url: "https://dl.k8s.io/ci-cross/#{versions[:kubeadm]}/bin/linux/amd64/kubeadm",
       mode: '0755',
     },
+    "/usr/bin/tini" => {
+      url: "https://github.com/krallin/tini/releases/download/#{versions[:tini]}/tini",
+      mode: '0755',
+    },
   ]
 
   install_packages dependencies
@@ -71,8 +76,17 @@ def kubelet_cmd
   )
 end
 
+def create_kubelet_wrapper
+  kubelet_wrapper = "!#/bin/sh\nuntil #{kubelet_cmd.join(' ')} ; do sleep 1 ; done"
+  run "echo \"#{kubelet_wrapper}\" > /usr/bin/kubelet.sh && chmod 0755 /usr/bin/kubelet.sh"
+end
+
 install_dependencies
 
-set_exec entrypoint: kubelet_cmd
+create_kubelet_wrapper
 
-tag "kdx:latest"
+tag "kxd:shell"
+
+set_exec entrypoint: %w(tini --), cmd: %w(kubelet.sh)
+
+tag "kxd:kubelet"
