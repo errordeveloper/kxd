@@ -1,0 +1,66 @@
+from "ubuntu:xenial"
+
+def install_packages pkgs
+  cmds = [
+    %(apt-get update -q),
+    %(apt-get upgrade -qy),
+    %(apt-get install -qy #{pkgs}),
+  ]
+
+  cmds.each { |cmd| run cmd }
+end
+
+def install_dependencies
+  versions = {
+    kubernetes: "v1.5.2",
+    kubeadm: "v1.6.0-alpha.0.2074+a092d8e0f95f52",
+    weave: "v1.9.0",
+  }
+
+  prepare = [
+    'curl --silent "https://packages.cloud.google.com/apt/doc/apt-key.gpg" | apt-key add -',
+    'echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list',
+  ]
+
+  dependencies = %(curl apt-transport-https)
+
+  # TODO pin versions here
+  # TODO docker-engine
+  # TODO installing kubeadm fails due to systemd
+  official_packages = %(docker.io kubelet kubectl kubernetes-cni)
+
+  weave_release_artefacts = "https://github.com/weaveworks/weave/releases/download"
+
+  download_files = [
+    "/usr/bin/weave" => {
+      url: "#{weave_release_artefacts}/#{versions[:weave]}/weave",
+      mode: '0755',
+    },
+    "/etc/weave-daemonset.yaml" => {
+      url: "#{weave_release_artefacts}/#{versions[:weave]}/weave-daemonset.yaml",
+      mode: '0644',
+    },
+    "/usr/bin/kubeadm" => {
+      url: "https://dl.k8s.io/ci-cross/#{versions[:kubeadm]}/bin/linux/amd64/kubeadm",
+      mode: '0755',
+    },
+  ]
+
+  install_packages dependencies
+
+  prepare.each { |cmd| run cmd }
+
+  install_packages official_packages
+
+  download_files.each do |file|
+    file.each do |dest,info|
+      run %(curl --output "#{dest}" --fail --silent --location "#{info[:url]}")
+      run %(chmod "#{info[:mode]}" "#{dest}")
+    end
+  end
+
+end
+
+install_dependencies
+
+tag "kdx:latest"
