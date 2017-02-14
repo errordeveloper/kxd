@@ -7,11 +7,10 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-image_name="errordeveloper/kxd"
+readonly image_name="errordeveloper/kxd"
 
 ## TODO rootfs should be mounted read-only, this is because of CNI hack...
 sys_volumes=(
-  /:/rootfs:rw
   /sys:/sys:ro
   /dev:/dev:rw
   /var/run:/var/run:rw
@@ -35,22 +34,26 @@ args=(
 )
 
 for v in "${sys_volumes[@]}" ; do args+=("--volume=${v}") ; done
+rootfs_vol="--volume=/:/rootfs:rw"
 
 ## TODO this will fail on the first run for numerous reasons
 # - directories missing in /, so Docker for Mac will refuse mounts
 # - does kubeadm reset fail miserably?
-docker run "${args[@]}" --rm "${image_name}:shell" "mkdir -p /rootfs/var/lib/kubelet"
-docker run "${args[@]}" --rm "${image_name}:shell" "mkdir -p /rootfs/var/log/containers"
-docker run "${args[@]}" --rm "${image_name}:shell" "mkdir -p /rootfs/opt/cni"
-docker run "${args[@]}" --rm "${image_name}:shell" "cp -r /opt/cni/bin /rootfs/opt/cni"
-docker run "${args[@]}" --rm "${image_name}:shell" "nsenter --mount=/proc/1/ns/mnt -- mount --bind /var/lib/kubelet /var/lib/kubelet"
-docker run "${args[@]}" --rm "${image_name}:shell" "nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared /var/lib/kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/etc/kubernetes"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/var/lib/kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/var/log/containers"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/etc/cni"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/opt/cni"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "cp -r /opt/cni/bin /rootfs/opt/cni"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "nsenter --mount=/proc/1/ns/mnt -- mount --bind /var/lib/kubelet /var/lib/kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared /var/lib/kubelet"
 
 for v in "${kxd_volumes[@]}" ; do args+=("--volume=${v}") ; done
+rootfs_vol="--volume=/:/rootfs:ro"
 
-docker run "${args[@]}" --rm "${image_name}:shell" "kubeadm reset"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "kubeadm reset"
 
-docker run "${args[@]}" --name=kxd --detach "${image_name}:kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --name=kxd --detach "${image_name}:kubelet"
 
 docker exec --tty --interactive kxd kubeadm init --skip-preflight-checks
 docker exec --tty --interactive kxd kubectl create -f /etc/weave-daemonset.yaml
