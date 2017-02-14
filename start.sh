@@ -55,5 +55,12 @@ docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "kubeadm rese
 
 docker run "${args[@]}" "${rootfs_vol}" --name=kxd --detach "${image_name}:kubelet"
 
-docker exec --tty --interactive kxd kubeadm init --skip-preflight-checks
-docker exec --tty --interactive kxd kubectl create -f /etc/weave-daemonset.yaml
+## TODO it is possible Docker for Mac VM gets a different address on eth0
+docker exec --tty --interactive kxd kubeadm init --skip-preflight-checks --api-advertise-addresses=192.168.65.2 --api-advertise-addresses=127.0.0.1
+docker exec --tty --interactive kxd kubectl create --filename /etc/weave-daemonset.yaml
+
+docker run --detach --tty --interactive --publish=8443:8443 "${image_name}:shell" "socat TCP-LISTEN:8443,fork TCP:192.168.65.2:6443"
+
+docker cp kxd:/etc/kubernetes/admin.conf kubeconfig
+kubectl --kubeconfig=kubeconfig config set-cluster kubernetes --server=https://127.0.0.1:8443
+kubectl --kubeconfig=kubeconfig get nodes
