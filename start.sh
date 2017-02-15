@@ -25,6 +25,13 @@ kxd_volumes=(
   /var/log/containers:/var/log/containers:rw
 )
 
+readonly infra_label="kxd.k8s.io/infra=true"
+
+kill_list=(
+  $(docker ps --all --filter "label=kxd.io.k8s/infra=true" --quiet)
+  $(docker ps --all --filter "label=io.kubernetes.pod.name" --quiet)
+)
+
 kill_list=($(docker ps --all --quiet))
 
 test "${#kill_list}" -gt 0 && docker rm --volumes --force "${kill_list[@]}"
@@ -53,7 +60,13 @@ rootfs_vol="--volume=/:/rootfs:ro"
 
 docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "kubeadm reset"
 
-docker run "${args[@]}" "${rootfs_vol}" --name=kxd --detach "${image_name}:kubelet"
+if [ "$#" -gt 0 ] ; then
+  echo "$*" | grep -q '\--only-reset' && exit
+fi
+
+readonly labels="--label=${infra_label}"
+
+docker run "${args[@]}" "${rootfs_vol}" --name=kxd --detach "${labels}" "${image_name}:kubelet"
 
 ## TODO it is possible Docker for Mac VM gets a different address on eth0
 readonly primary_address=192.168.65.2
@@ -61,7 +74,7 @@ docker exec --tty --interactive kxd kubeadm init --skip-preflight-checks --api-a
 docker exec --tty --interactive kxd kubectl create --filename /etc/weave-daemonset.yaml
 
 readonly proxy_port=8443
-docker run --detach --tty --interactive --publish="${proxy_port}:${proxy_port}" "${image_name}:shell" "socat TCP-LISTEN:${proxy_port},fork TCP:${primary_address}:6443"
+docker run --detach --tty --interactive --publish="${proxy_port}:${proxy_port}" "${labels}" "${image_name}:shell" "socat TCP-LISTEN:${proxy_port},fork TCP:${primary_address}:6443"
 
 docker cp kxd:/etc/kubernetes/admin.conf kubeconfig
 export KUBECONFIG=kubeconfig

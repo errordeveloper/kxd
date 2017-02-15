@@ -85,7 +85,10 @@ install_dependencies
 
 create_kubelet_wrapper
 
-# TODO use environment variable
+# TODO use environment variable to set (https://github.com/erikh/box/issues/144)
+# org.label-schema.vcs-url
+# org.label-schema.vcs-ref
+
 image_name = "errordeveloper/kxd"
 
 tag "#{image_name}:shell"
