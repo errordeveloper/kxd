@@ -58,9 +58,8 @@ docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "nsenter --mo
 for v in "${kxd_volumes[@]}" ; do args+=("--volume=${v}") ; done
 rootfs_vol="--volume=/:/rootfs:ro"
 
-readonly etcd_vol="--volume=/var/lib/etcd:/var/lib/etcd:rw"
-
-docker run "${args[@]}" "${rootfs_vol}" "${etcd_vol}" --rm "${image_name}:shell" "kubeadm reset"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "rm -r -f /var/lib/etcd && mkdir -p /var/lib/etcd"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "kubeadm reset"
 
 if [ "$#" -gt 0 ] ; then
   echo "$*" | grep -q '\--only-reset' && exit
