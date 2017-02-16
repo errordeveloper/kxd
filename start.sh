@@ -10,7 +10,7 @@ set -o nounset
 readonly image_name="errordeveloper/kxd"
 
 ## TODO rootfs should be mounted read-only, this is because of CNI hack...
-sys_volumes=(
+readonly sys_volumes=(
   /sys:/sys:ro
   /dev:/dev:rw
   /port:/port:rw
@@ -18,7 +18,7 @@ sys_volumes=(
   /var/lib:/var/lib:rw
 )
 
-kxd_volumes=(
+readonly kxd_volumes=(
   /opt/cni:/opt/cni:ro
   /etc/cni:/etc/cni:ro
   /etc/kubernetes:/etc/kubernetes:rw
