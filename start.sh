@@ -27,12 +27,10 @@ kxd_volumes=(
 
 readonly infra_label="kxd.k8s.io/infra=true"
 
-kill_list=(
+readonly kill_list=(
   $(docker ps --all --filter "label=kxd.io.k8s/infra=true" --quiet)
   $(docker ps --all --filter "label=io.kubernetes.pod.name" --quiet)
 )
-
-kill_list=($(docker ps --all --quiet))
 
 test "${#kill_list}" -gt 0 && docker rm --volumes --force "${kill_list[@]}"
 
