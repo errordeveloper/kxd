@@ -62,6 +62,7 @@ docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "kubeadm rese
 
 if [ "$#" -gt 0 ] ; then
   echo "$*" | grep -q '\--only-reset' && exit
+  echo "$*" | grep -q '\--reset-only' && exit
 fi
 
 readonly labels="--label=${infra_label}"
