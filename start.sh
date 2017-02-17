@@ -78,13 +78,13 @@ docker exec --tty --interactive kxd-kubelet kubectl create --filename /etc/weave
 readonly proxy_port="6443"
 readonly kubernetes_service_ip="10.96.0.1"
 readonly kubernetes_service_port="443"
-readonly kubernetes_insecure_port="8080"
 readonly slirp_proxy_kubernetes_service=" \
   /rootfs/usr/bin/slirp-proxy \
     -i -no-local-ip -proto tcp \
-    -host-ip 0.0.0.0 -host-port ${proxy_port} \
+    -host-ip ${localhost} -host-port ${proxy_port} \
     -container-ip ${kubernetes_service_ip} -container-port ${kubernetes_service_port} \
 "
+readonly kubernetes_insecure_port="8080"
 readonly slirp_proxy_kubernetes_localhost=" \
   /rootfs/usr/bin/slirp-proxy \
     -i -no-local-ip -proto tcp \
