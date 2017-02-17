@@ -20,7 +20,7 @@ readonly docker_slirp_proxy_cmd=" \
     "$(echo "${svc}" | jq -r '.spec | "-proto \(.ports[0].protocol | ascii_downcase) -host-ip \(.clusterIP) -host-port \(.ports[0].port) -container-ip \(.clusterIP) -container-port \(.ports[0].port)"')" \
 "
 readonly docker_container_name="$(echo "${svc}" \
-  | jq -r '"kxd-svc-\(.metadata.namespace)-\(.metadata.name)-\(.spec.clusterIP)-\(.spec.ports[0].port)-\(.spec.ports[0].protocol | ascii_downcase)-"')\
+  | jq -r '"kxd-svc-\(.metadata.namespace)-\(.metadata.name)-\(.spec.clusterIP)-\(.spec.ports[0].port)-\(.spec.ports[0].protocol | ascii_downcase)"')\
 "
 
 readonly sys_volumes=(
