@@ -44,7 +44,7 @@ labels=(
 for v in "${sys_volumes[@]}" ; do args+=("--volume=${v}") ; done
 for l in "${labels[@]}" ; do args+=("--label=${v}") ; done
 
-printf "Will run the follwing comand that requires root previleges, please enter your password below\n%s\n" "${darwin_ifconfig_cmd}"
+printf "Will run the following command that requires root privileges, please enter your password below\n%s\n" "${darwin_ifconfig_cmd}"
 ${darwin_ifconfig_cmd}
 
 docker run "${args[@]}" "${image_name}:shell" "${docker_slirp_proxy_cmd}"
