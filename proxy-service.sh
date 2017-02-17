@@ -42,7 +42,7 @@ labels=(
 )
 
 for v in "${sys_volumes[@]}" ; do args+=("--volume=${v}") ; done
-for l in "${labels[@]}" ; do args+=("--label=${v}") ; done
+for l in "${labels[@]}" ; do args+=("--label=${l}") ; done
 
 printf "Will run the following command that requires root privileges, please enter your password below\n%s\n" "${darwin_ifconfig_cmd}"
 ${darwin_ifconfig_cmd}
