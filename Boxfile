@@ -12,15 +12,14 @@ end
 
 def install_dependencies
   versions = {
-    kubernetes: "v1.5.2",
-    kubeadm: "v1.6.0-alpha.0.2074+a092d8e0f95f52",
-    weave: "v1.9.0",
+    kubernetes: "v1.6.0-rc.1",
+    weave: "v1.9.4",
     tini: "v0.14.0",
   }
 
   prepare = [
     'curl --silent "https://packages.cloud.google.com/apt/doc/apt-key.gpg" | apt-key add -',
-    'echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list',
+    'echo "deb http://apt.kubernetes.io/ kubernetes-xenial-unstable main" > /etc/apt/sources.list.d/kubernetes.list',
   ]
 
   dependencies = %(curl apt-transport-https)
@@ -42,7 +41,7 @@ def install_dependencies
       mode: '0644',
     },
     "/usr/bin/kubeadm" => {
-      url: "https://dl.k8s.io/ci-cross/#{versions[:kubeadm]}/bin/linux/amd64/kubeadm",
+      url: "https://dl.k8s.io/#{versions[:kubernetes]}/bin/linux/amd64/kubeadm",
       mode: '0755',
     },
     "/usr/bin/tini" => {
@@ -73,6 +72,8 @@ def kubelet_cmd
       --pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true
       --network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin
       --cluster-dns=10.96.0.10 --cluster-domain=cluster.local
+      --containerized=true
+      --v=6
   )
 end
 

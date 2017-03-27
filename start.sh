@@ -11,7 +11,8 @@ readonly image_name="errordeveloper/kxd"
 
 ## TODO rootfs should be mounted read-only, this is because of CNI hack...
 readonly sys_volumes=(
-  /sys:/sys:ro
+  /sys:/sys:rw
+  /sys/fs/cgroup:/sys/fs/cgroup:rw
   /dev:/dev:rw
   /port:/port:rw
   /var/run:/var/run:rw
@@ -72,7 +73,7 @@ docker run "${args[@]}" "${rootfs_vol}" --name=kxd-kubelet --detach "${labels}" 
 ## TODO it is possible Docker for Mac VM gets a different address on eth0
 readonly primary_address="192.168.65.2"
 readonly localhost="127.0.0.1"
-docker exec --tty --interactive kxd-kubelet kubeadm init --skip-preflight-checks --api-advertise-addresses="${primary_address}" --api-advertise-addresses="${localhost}"
+docker exec --tty --interactive kxd-kubelet kubeadm init --skip-preflight-checks --apiserver-advertise-address="${primary_address}" --apiserver-cert-extra-sans="${localhost}" --kubernetes-version="v1.6.0-beta.4"
 docker exec --tty --interactive kxd-kubelet kubectl create --filename /etc/weave-daemonset.yaml
 
 readonly proxy_port="6443"
