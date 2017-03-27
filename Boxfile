@@ -77,7 +77,7 @@ def kubelet_cmd
 end
 
 def create_kubelet_wrapper
-  kubelet_wrapper = "!#/bin/sh\nuntil #{kubelet_cmd.join(' ')} ; do sleep 1 ; done"
+  kubelet_wrapper = "#!/bin/sh\nuntil #{kubelet_cmd.join(' ')} ; do sleep 1 ; done"
   run "echo \"#{kubelet_wrapper}\" > /usr/bin/kubelet.sh && chmod 0755 /usr/bin/kubelet.sh"
 end
 
