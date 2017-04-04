@@ -73,8 +73,14 @@ docker run "${args[@]}" "${rootfs_vol}" --name=kxd-kubelet --detach "${labels}" 
 ## TODO it is possible Docker for Mac VM gets a different address on eth0
 readonly primary_address="192.168.65.2"
 readonly localhost="127.0.0.1"
-docker exec --tty --interactive kxd-kubelet kubeadm init --skip-preflight-checks --apiserver-advertise-address="${primary_address}" --apiserver-cert-extra-sans="${localhost}" --kubernetes-version="v1.6.1"
-docker exec --tty --interactive kxd-kubelet kubectl create --namespace="kube-system" --filename="/etc/weave.yaml"
+
+docker_exec() {
+  docker exec --tty --interactive kxd-kubelet "$@"
+}
+
+docker_exec kubeadm init --skip-preflight-checks --apiserver-advertise-address="${primary_address}" --apiserver-cert-extra-sans="${localhost}" --kubernetes-version="v1.6.1"
+docker_exec kubectl create --namespace="kube-system" --filename="http://localhost:8080/k8s/v1.6/net.yaml"
+docker_exec kubectl taint node moby node-role.kubernetes.io/master:NoSchedule-
 
 readonly proxy_port="6443"
 readonly kubernetes_service_ip="10.96.0.1"
@@ -106,5 +112,4 @@ docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure --detach "
 docker cp kxd-kubelet:/etc/kubernetes/admin.conf kubeconfig
 export KUBECONFIG=kubeconfig
 kubectl config set-cluster kubernetes --server="https://${localhost}:${proxy_port}"
-#kubectl taint node moby dedicated:NoSchedule-
 kubectl get nodes
