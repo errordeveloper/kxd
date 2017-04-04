@@ -106,5 +106,5 @@ docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure --detach "
 docker cp kxd-kubelet:/etc/kubernetes/admin.conf kubeconfig
 export KUBECONFIG=kubeconfig
 kubectl config set-cluster kubernetes --server="https://${localhost}:${proxy_port}"
-kubectl taint node moby dedicated:NoSchedule-
+#kubectl taint node moby dedicated:NoSchedule-
 kubectl get nodes
