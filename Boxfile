@@ -12,7 +12,7 @@ end
 
 def install_dependencies
   versions = {
-    kubernetes: "v1.6.0-rc.1",
+    kubernetes: "v1.6.1-beta.0.12+018a96913f57f9",
     weave: "v1.9.4",
     tini: "v0.14.0",
   }
@@ -27,21 +27,27 @@ def install_dependencies
   # TODO pin versions here
   # TODO docker-engine
   # TODO installing kubeadm fails due to systemd
-  official_packages = %(docker.io kubelet kubectl kubernetes-cni)
+  official_packages = %(docker.io kubectl kubernetes-cni)
 
+  kube_release_artefacts = "https://dl.k8s.io/ci/#{versions[:kubernetes]}/bin/linux/amd64"
   weave_release_artefacts = "https://github.com/weaveworks/weave/releases/download"
+  weave_launcher = "https://cloud.weave.works/k8s/v1.6/net.yaml?v=#{versions[:weave]}"
 
   download_files = [
     "/usr/bin/weave" => {
       url: "#{weave_release_artefacts}/#{versions[:weave]}/weave",
       mode: '0755',
     },
-    "/etc/weave-daemonset.yaml" => {
-      url: "#{weave_release_artefacts}/#{versions[:weave]}/weave-daemonset.yaml",
+    "/etc/weave.yaml" => {
+      url: weave_launcher,
       mode: '0644',
     },
     "/usr/bin/kubeadm" => {
-      url: "https://dl.k8s.io/#{versions[:kubernetes]}/bin/linux/amd64/kubeadm",
+      url: "#{kube_release_artefacts}/kubeadm",
+      mode: '0755',
+    },
+    "/usr/bin/kubelet" => {
+      url: "#{kube_release_artefacts}/kubelet",
       mode: '0755',
     },
     "/usr/bin/tini" => {

@@ -3,7 +3,7 @@ build: Boxfile
 	  -v $(PWD):$(PWD) \
 	  -v /var/run/docker.sock:/var/run/docker.sock \
 	  -w $(PWD) \
-	    erikh/box:latest Boxfile
+	    erikh/box:master Boxfile
 
 push: build
 	docker push errordeveloper/kxd:kubelet
