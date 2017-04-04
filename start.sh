@@ -79,7 +79,7 @@ docker_exec() {
 }
 
 docker_exec kubeadm init --skip-preflight-checks --apiserver-advertise-address="${primary_address}" --apiserver-cert-extra-sans="${localhost}" --kubernetes-version="v1.6.1"
-docker_exec kubectl create --namespace="kube-system" --filename="http://localhost:8080/k8s/v1.6/net.yaml"
+docker_exec kubectl create --namespace="kube-system" --filename="https://cloud.weave.works/k8s/v1.6/net.yaml"
 docker_exec kubectl taint node moby node-role.kubernetes.io/master:NoSchedule-
 
 readonly proxy_port="6443"
