@@ -12,14 +12,14 @@ end
 
 def install_dependencies
   versions = {
-    kubernetes: "v1.6.1-beta.0.12+018a96913f57f9",
+    kubernetes: "v1.6.1",
     weave: "v1.9.4",
     tini: "v0.14.0",
   }
 
   prepare = [
     'curl --silent "https://packages.cloud.google.com/apt/doc/apt-key.gpg" | apt-key add -',
-    'echo "deb http://apt.kubernetes.io/ kubernetes-xenial-unstable main" > /etc/apt/sources.list.d/kubernetes.list',
+    'echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list',
   ]
 
   dependencies = %(curl apt-transport-https)
@@ -27,9 +27,9 @@ def install_dependencies
   # TODO pin versions here
   # TODO docker-engine
   # TODO installing kubeadm fails due to systemd
-  official_packages = %(docker.io kubectl kubernetes-cni)
+  official_packages = %(docker.io kubectl kubelet kubernetes-cni)
 
-  kube_release_artefacts = "https://dl.k8s.io/ci/#{versions[:kubernetes]}/bin/linux/amd64"
+  kube_release_artefacts = "https://dl.k8s.io/#{versions[:kubernetes]}/bin/linux/amd64"
   weave_release_artefacts = "https://github.com/weaveworks/weave/releases/download"
   weave_launcher = "https://cloud.weave.works/k8s/v1.6/net.yaml?v=#{versions[:weave]}"
 
@@ -44,10 +44,6 @@ def install_dependencies
     },
     "/usr/bin/kubeadm" => {
       url: "#{kube_release_artefacts}/kubeadm",
-      mode: '0755',
-    },
-    "/usr/bin/kubelet" => {
-      url: "#{kube_release_artefacts}/kubelet",
       mode: '0755',
     },
     "/usr/bin/tini" => {
@@ -95,6 +91,8 @@ create_kubelet_wrapper
 # TODO use environment variable to set (https://github.com/erikh/box/issues/144)
 # org.label-schema.vcs-url
 # org.label-schema.vcs-ref
+
+env KUBECONFIG: "/etc/kubernetes/admin.conf"
 
 image_name = "errordeveloper/kxd"
 
