@@ -12,8 +12,8 @@ end
 
 def install_dependencies
   versions = {
-    kubernetes: "v1.6.1",
-    weave: "v1.9.4",
+    kubernetes: "v1.7.0",
+    weave: "v2.0.1",
     tini: "v0.14.0",
   }
 
@@ -95,6 +95,8 @@ create_kubelet_wrapper
 env KUBECONFIG: "/etc/kubernetes/admin.conf"
 
 image_name = "errordeveloper/kxd"
+
+set_exec entrypoint: %w(/bin/bash -c), cmd: []
 
 tag "#{image_name}:shell"
 

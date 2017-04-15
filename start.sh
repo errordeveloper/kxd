@@ -78,8 +78,8 @@ docker_exec() {
   docker exec --tty --interactive kxd-kubelet "$@"
 }
 
-docker_exec kubeadm init --skip-preflight-checks --apiserver-advertise-address="${primary_address}" --apiserver-cert-extra-sans="${localhost}" --kubernetes-version="v1.6.1"
-docker_exec kubectl create --namespace="kube-system" --filename="https://cloud.weave.works/k8s/v1.6/net.yaml"
+docker_exec kubeadm init --skip-preflight-checks --apiserver-advertise-address="${primary_address}" --apiserver-cert-extra-sans="${localhost}" --kubernetes-version="v1.7.0"
+docker_exec kubectl create --namespace="kube-system" --filename="https://frontend.dev.weave.works/k8s/v1.6/net.yaml"
 docker_exec kubectl taint node moby node-role.kubernetes.io/master:NoSchedule-
 
 readonly proxy_port="6443"
@@ -104,7 +104,10 @@ docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy --detach "${labels}
   --volume="/lib/libc.musl-x86_64.so.1:/lib/libc.musl-x86_64.so.1:ro" \
   "${image_name}:shell" "${slirp_proxy_kubernetes_service}"
 
-docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure --detach "${labels}" \
+docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure1 --detach "${labels}" \
+  "${image_name}:shell" "kubectl proxy --port=8080"
+
+docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure2 --detach "${labels}" \
   --volume="/lib/ld-musl-x86_64.so.1:/lib/ld-musl-x86_64.so.1:ro" \
   --volume="/lib/libc.musl-x86_64.so.1:/lib/libc.musl-x86_64.so.1:ro" \
   "${image_name}:shell" "${slirp_proxy_kubernetes_localhost}"
