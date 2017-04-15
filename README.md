@@ -2,7 +2,7 @@
 
 > Please note, this project is work in progress.
 
-> Also note, there exists a known issue (see [docker/for-mac#1305](https://github.com/docker/for-mac/issues/1305) & [docker/for-mac#1176](https://github.com/docker/for-mac/issues/1176)), where HyperKit, it can happen when you deploy significant payload onto Kubernetes. A known work-around is to ensure Docker for Mac has only one vCPU.
+> Also note, there exists a known issue (see [docker/for-mac#1305](https://github.com/docker/for-mac/issues/1305) & [docker/for-mac#1176](https://github.com/docker/for-mac/issues/1176)), where a crash may occur when some suffiecently large payload is deployed onto Kubernetes. A known work-around is to ensure Docker for Mac has only one vCPU.
 
 ```bash
 git clone https://github.com/errordeveloper/kxd
