@@ -8,6 +8,8 @@ set -o pipefail
 set -o nounset
 
 readonly image_name="errordeveloper/kxd"
+readonly shell_image_name="${image_name}:${shell_image_tag:-shell}"
+readonly kubelet_image_name="${image_name}:${kubelet_image_tag:-kubelet}"
 
 ## TODO rootfs should be mounted read-only, this is because of CNI hack...
 readonly sys_volumes=(
@@ -46,20 +48,20 @@ rootfs_vol="--volume=/:/rootfs:rw"
 ## TODO this will fail on the first run for numerous reasons
 # - directories missing in /, so Docker for Mac will refuse mounts
 # - does kubeadm reset fail miserably?
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/etc/kubernetes"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/var/lib/kubelet"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/var/log/containers"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/etc/cni"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "mkdir -p /rootfs/opt/cni"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "cp -r /opt/cni/bin /rootfs/opt/cni"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "nsenter --mount=/proc/1/ns/mnt -- mount --bind /var/lib/kubelet /var/lib/kubelet"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared /var/lib/kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "mkdir -p /rootfs/etc/kubernetes"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "mkdir -p /rootfs/var/lib/kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "mkdir -p /rootfs/var/log/containers"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "mkdir -p /rootfs/etc/cni"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "mkdir -p /rootfs/opt/cni"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "cp -r /opt/cni/bin /rootfs/opt/cni"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "nsenter --mount=/proc/1/ns/mnt -- mount --bind /var/lib/kubelet /var/lib/kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared /var/lib/kubelet"
 
 for v in "${kxd_volumes[@]}" ; do args+=("--volume=${v}") ; done
 rootfs_vol="--volume=/:/rootfs:ro"
 
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "rm -r -f /var/lib/etcd && mkdir -p /var/lib/etcd"
-docker run "${args[@]}" "${rootfs_vol}" --rm "${image_name}:shell" "kubeadm reset"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "rm -r -f /var/lib/etcd && mkdir -p /var/lib/etcd"
+docker run "${args[@]}" "${rootfs_vol}" --rm "${shell_image_name}" "kubeadm reset"
 
 if [ "$#" -gt 0 ] ; then
   echo "$*" | grep -q '\--only-reset' && exit
@@ -68,7 +70,7 @@ fi
 
 readonly labels="--label=${infra_label}"
 
-docker run "${args[@]}" "${rootfs_vol}" --name=kxd-kubelet --detach "${labels}" "${image_name}:kubelet"
+docker run "${args[@]}" "${rootfs_vol}" --name=kxd-kubelet --detach "${labels}" "${kubelet_image_name}"
 
 ## TODO it is possible Docker for Mac VM gets a different address on eth0
 readonly primary_address="192.168.65.2"
@@ -102,15 +104,15 @@ readonly slirp_proxy_kubernetes_localhost=" \
 docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy --detach "${labels}" \
   --volume="/lib/ld-musl-x86_64.so.1:/lib/ld-musl-x86_64.so.1:ro" \
   --volume="/lib/libc.musl-x86_64.so.1:/lib/libc.musl-x86_64.so.1:ro" \
-  "${image_name}:shell" "${slirp_proxy_kubernetes_service}"
+  "${shell_image_name}" "${slirp_proxy_kubernetes_service}"
 
 docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure1 --detach "${labels}" \
-  "${image_name}:shell" "kubectl proxy --port=8080"
+  "${shell_image_name}" "kubectl proxy --port=8080"
 
 docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure2 --detach "${labels}" \
   --volume="/lib/ld-musl-x86_64.so.1:/lib/ld-musl-x86_64.so.1:ro" \
   --volume="/lib/libc.musl-x86_64.so.1:/lib/libc.musl-x86_64.so.1:ro" \
-  "${image_name}:shell" "${slirp_proxy_kubernetes_localhost}"
+  "${shell_image_name}" "${slirp_proxy_kubernetes_localhost}"
 
 docker cp kxd-kubelet:/etc/kubernetes/admin.conf kubeconfig
 export KUBECONFIG=kubeconfig
