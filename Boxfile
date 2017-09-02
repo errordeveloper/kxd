@@ -12,8 +12,8 @@ end
 
 def install_dependencies
   versions = {
-    kubernetes: "v1.7.0",
-    weave: "v2.0.1",
+    kubernetes: "v1.7.5",
+    weave: "v2.0.4",
     tini: "v0.14.0",
   }
 
