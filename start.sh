@@ -114,7 +114,7 @@ docker run "${args[@]}" "${rootfs_vol}" --name=kxd-api-proxy-insecure2 --detach 
   --volume="/lib/libc.musl-x86_64.so.1:/lib/libc.musl-x86_64.so.1:ro" \
   "${shell_image_name}" "${slirp_proxy_kubernetes_localhost}"
 
-docker cp kxd-kubelet:/etc/kubernetes/admin.conf kubeconfig
-export KUBECONFIG=kubeconfig
-kubectl config set-cluster kubernetes --server="https://${localhost}:${proxy_port}"
-kubectl get nodes
+#docker cp kxd-kubelet:/etc/kubernetes/admin.conf kubeconfig
+#export KUBECONFIG=kubeconfig
+#kubectl config set-cluster kubernetes --server="https://${localhost}:${proxy_port}"
+#kubectl get nodes
